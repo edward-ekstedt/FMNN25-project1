@@ -21,7 +21,6 @@ class spline(object):
     def ma_array(self):
         u = self.u
         self.xi = (u[:-2]+u[1:-1]+u[2:])/3.
-        self.xi = np.vstack((xix,xiy))  
     def computeNXi(self, u, k, i, xi):
         if k==0:
             if u[i-1] == u[i]:

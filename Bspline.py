@@ -9,9 +9,44 @@ import scipy as sp
 
 
 class spline(object):
-    def ma_array(self):
+    
+    def __init__(self,knots,control):
+        
+        self.knots = knots
+        self.control = control
+        
+    def __call__(self,u):
+        s = self.computeS(u)
+        
+
+
+    def computeS(self,u):
+        index = self.findHot(u)
+        dx = self.sU(u,index,index+1,0)
+        dy = self.sU(u,index,index+1,1)
+        return np.array[[dx],[dy]]
+        
+    def sU(self,u,rightMost,leftMost,dim):
+        #Calculates the blossoms with recursive algorithm
+        if rightMost - leftMost == 2:
+            return self.control[dim,leftMost]
+        else:
+            alpha = (self.knots[rightMost]-u)/(self.knots[rightMost]-self.knots[leftMost])
+            return alpha*self.sU(u,rightMost,leftMost-1,dim)+(1-alpha)*self.sU(u,rightMost+1,leftMost,dim)
+    def findHot(self,u):
+        #Finds the interval in which u is.
+        return (self.knots > u).argmax()
+        
+    def findD(self,u):
+        k=3
         u = self.u
-        self.xi = (u[:-2]+u[1:-1]+u[2:])/3.
+        xi = (u[:-2]+u[1:-1]+u[2:])/3.
+        NMatrix = np.zeros((len(xi),len(xi)))
+        for i in range(len(xi)):
+            for j in range(len(xi)):
+                NMatrix[[i],[j]]=self.computeNXi(u,k,i,xi[j])
+        dx = sp.linalg.solve(NMatrix,x)
+        dy = sp.linalg.solve(NMatrix,y)
         
     def computeNXi(self, u, k, i, xi):
         if k==0:

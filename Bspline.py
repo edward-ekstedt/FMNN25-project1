@@ -6,6 +6,7 @@ Created on Fri Sep 18 09:35:16 2015
 """
 import numpy as np
 import scipy as sp
+import matplotlib.pyplot as mp
 
 
 class spline(object):
@@ -68,6 +69,43 @@ class spline(object):
                 coef2=(u[i+k]-xi)/(u[i+k]-u[i])
         NXi = coef1*self.computeNXi(u, k-1, i, xi)+coef2*self.computeNXi(u, k-1, i+1, xi)
         return NXi
+    
+    def makeBasisFunction(self, j, k):
+        def basisFunction(u):
+            if k==0:
+                if self.knots[j-1]==self.knots[j]:
+                    return 0
+                elif self.knots[j-1]<=u<self.knots[j]:
+                    return 1
+                else:
+                    return 0
+            else:
+                if self.knots[j+k-1]==self.knots[j-1]:
+                    koeff1=0
+                else:
+                    koeff1=(u-self.knots[j-1])/(self.knots[j+k-1]-self.knots[j-1])
+                if self.knots[j+k]==self.knots[j]:
+                    koeff2=0
+                else:
+                    koeff2=(self.knots[j+k]-u)/(self.knots[j+k]-self.knots[j])
+                return koeff1*self.makeBasisFunction(j,k-1)(u)+koeff2*self.makeBasisFunction(j+1,k-1)(u)
+        return basisFunction
+
+knots = np.linspace(0,1,10)
+knots = np.hstack(([0,0],knots,[1,1]))
+grid = np.linspace(0,1,100)
+sp = spline(knots,0)
+
+for k in range(10):
+    spbasis=sp.makeBasisFunction(k,3)
+    values=np.zeros(len(grid))
+    for j in range(len(grid)):
+        print(j)
+        values[j]=spbasis(grid[j])
+    mp.plot(grid,values)
+
+                   
+                    
 
 
         

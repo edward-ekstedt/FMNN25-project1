@@ -34,6 +34,7 @@ class spline(object):
             alpha = (self.knots[rightMost]-u)/(self.knots[rightMost]-self.knots[leftMost])
             return alpha*self.sU(u,rightMost,leftMost-1,dim)+(1-alpha)*self.sU(u,rightMost+1,leftMost,dim)
     def findHot(self,u):
+        #jomp
         #Finds the interval in which u is.
         return (self.knots > u).argmax()
         

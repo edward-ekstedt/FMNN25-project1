@@ -39,11 +39,9 @@ class spline(object):
             if len(knots) != len(control[0]) +2:
                 raise ValueError('Knot array is of wrong size')
             self.knots = knots
-            print(knots)
         else:
             knots = np.linspace(0.,1.,len(control[0])-2)
             self.knots = np.hstack(([0,0],knots,[1,1]))
-            print(self.knots)
         
     def __call__(self,u):
         self.u = u        
@@ -55,16 +53,16 @@ class spline(object):
         if u[np.argmax(u)] >= self.knots[-1] or u[np.argmin(u)] < self.knots[0]:
             raise ValueError('u out of bounds')
         self.s = self.computeS(u)
-        
+        return self.s
 
     @classmethod
-    def interpolate(cls, x, y):
-        if len(x) != len(y):
-            raise NameError('X and Y array of different lengths')
-        knots = np.linspace(0.,1.,len(x)-2)
+    def interpolate(cls, d):
+       # if len(x) != len(y):
+        #    raise NameError('X and Y array of different lengths')
+        knots = np.linspace(0.,1.,len(d[0])-2)
         knots = np.hstack(([0,0],knots,[1,1]))
         cls.knots = knots
-        return cls(cls.findD(cls, x, y, knots))
+        return cls(cls.findD(cls, d, knots))
         
         
 
@@ -91,22 +89,23 @@ class spline(object):
         #jomp
         #Finds the interval in which u is.
         return (self.knots > u).argmax()
-        
-    def findD(self, x, y, knots):
-        k=3
+    def makeBasis(knots,j):
+        controlBase = np.zeros([2,len(knots)-2])
+        controlBase[:,j] = [1,1.]
+        x =  spline(controlBase)    
+        return x
+    def findD(self, d, knots):
         u = knots
         xi = (u[:-2]+u[1:-1]+u[2:])/3.
-        print(self.knots)
+        xi[-1] -= 0.0001
         NMatrix = np.zeros((len(xi),len(xi)))
         for i in range(len(xi)):
             for j in range(len(xi)):
-                NMatrix[i,j]=self.makeBasisFunction(self,j,3)(xi[i])
-                #NMatrix[[i],[j]]=self.computeNXi(u,k,i,xi[j])
-        print(NMatrix)
-        dx = sp.linalg.solve(NMatrix,x)
-        dy = sp.linalg.solve(NMatrix,y)
+                NMatrix[i,j] = self.makeBasis(knots,j)(np.array([xi[i]]))[0]       
+        dx = sp.linalg.solve(NMatrix,d[0])
+        dy = sp.linalg.solve(NMatrix,d[1])
         return np.vstack([dx,dy])
-        
+
     def makeBasisFunction(self, j, k):
         def basisFunction(u):
             if k==0:
@@ -152,7 +151,7 @@ class spline(object):
 def testjomp():
     control = np.load('controlPoints.npy')
     u = np.linspace(0.,0.999,1000)
-    Sp = spline.interpolate(control[0],control[1])
+    Sp = spline.interpolate(control)
     Sp(u)
     Sp.plot()
 

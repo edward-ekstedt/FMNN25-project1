@@ -13,7 +13,7 @@ class controlSetter(object):
         self.xa = np.zeros(100)
         self.ya = np.zeros(100)
         self.i = 0
-        self.fig = plt.figure()
+        self.fig = plt.figure(2)
         ax = self.fig.add_subplot(111)
         ax.autoscale(False)
         plt.axis([-10, 10,-10,10])
@@ -36,7 +36,7 @@ class controlSetter(object):
                 self.ya=self.ya[:self.i]
                 controlPoint = np.vstack((self.xa,self.ya))
                 np.save('controlPoints',controlPoint)
-                plt.close('all')
+                #plt.close('all')
         self.cid = self.fig.canvas.mpl_connect('button_press_event',onclick)
         return
 

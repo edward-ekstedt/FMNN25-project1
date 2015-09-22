@@ -14,8 +14,15 @@ class spline(object):
     def __init__(self,control,knots=None):
         self.control = control
         if knots != None:
+            if knots[0] != knots[1]:
+                knots = np.hstack(([knots[0],knots]))
+            if knots[1] != knots[2]:
+                knots = np.hstack(([knots[0],knots]))
+            if knots[-1] != knots[-2]:
+                knots = np.hstack(([knots,knots[-1]]))
+            if knots[-2] != knots[-3]:
+                knots = np.hstack(([knots,knots[-1]]))
             self.knots = knots
-        
         
     def __call__(self,u):
         self.s = self.computeS(u)
@@ -91,7 +98,7 @@ class spline(object):
     
 def main():
     plt.close('all')
-    control = np.load('CLAUS.npy')
+    control = np.load('controlPoints.npy')
     knots = np.linspace(0,1,len(control[0])-2)
     knots = np.hstack(([0,0],knots,[1, 1]))
     u = np.linspace(0.,0.999,1000)

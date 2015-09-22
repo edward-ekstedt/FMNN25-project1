@@ -89,7 +89,9 @@ class spline(object):
         #jomp
         #Finds the interval in which u is.
         return (self.knots > u).argmax()
-    def makeBasis(knots,j):
+    def makeBasis(self,knots,j):
+        print(j)
+        print(knots)
         controlBase = np.zeros([2,len(knots)-2])
         controlBase[:,j] = [1,1.]
         x =  spline(controlBase)    
@@ -101,29 +103,11 @@ class spline(object):
         NMatrix = np.zeros((len(xi),len(xi)))
         for i in range(len(xi)):
             for j in range(len(xi)):
-                NMatrix[i,j] = self.makeBasis(knots,j)(np.array([xi[i]]))[0]       
+                NMatrix[i,j] = self.makeBasis(self,knots,j)(np.array([xi[i]]))[0]       
         dx = sp.linalg.solve(NMatrix,d[0])
         dy = sp.linalg.solve(NMatrix,d[1])
         return np.vstack([dx,dy])
 
-    def makeBasisFunction(self, j, k):
-        def basisFunction(u):
-            if k==0:
-                if self.knots[j-1]<=u<self.knots[j]:
-                    return 1
-                else:
-                    return 0
-            else:
-                if self.knots[j+k-1]==self.knots[j-1]:
-                    koeff1=0
-                else:
-                    koeff1=(u-self.knots[j-1])/(self.knots[j+k-1]-self.knots[j-1])
-                if self.knots[j+k]==self.knots[j]:
-                    koeff2=0
-                else:
-                    koeff2=(self.knots[j+k]-u)/(self.knots[j+k]-self.knots[j])
-                return koeff1*self.makeBasisFunction(self, j,k-1)(u)+koeff2*self.makeBasisFunction(self, j+1,k-1)(u)
-        return basisFunction
     def plot(self,plotControl = False):
         
         x = self.s[0]
@@ -152,6 +136,9 @@ def testjomp():
     control = np.load('controlPoints.npy')
     u = np.linspace(0.,0.999,1000)
     Sp = spline.interpolate(control)
+    knots = np.linspace(0,1.,10)
+    knots = np.hstack([0,0, knots, 1,1])
+    #basfn = Sp.makeBasis(knots,j)
     Sp(u)
     Sp.plot()
 

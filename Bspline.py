@@ -6,11 +6,8 @@ Created on Fri Sep 18 09:35:16 2015
 """
 import numpy as np
 import scipy as sp
-<<<<<<< HEAD
 import matplotlib.pyplot as plt
-=======
-import matplotlib.pyplot as mp
->>>>>>> origin/master
+
 
 
 class spline(object):
@@ -26,7 +23,12 @@ class spline(object):
                 knots = np.hstack(([knots,knots[-1]]))
             if knots[-2] != knots[-3]:
                 knots = np.hstack(([knots,knots[-1]]))
+            if len(knots) != len(control[0]) +2:
+                raise NameError('Knot array is of wrong size')
             self.knots = knots
+        else:
+            knots = np.linspace(0.,1.,len(control[0])-2)
+            self.knots = np.hstack(([0,0],knots,[1,1]))
         
     def __call__(self,u):
         self.s = self.computeS(u)
@@ -107,24 +109,6 @@ class spline(object):
                     koeff2=(self.knots[j+k]-u)/(self.knots[j+k]-self.knots[j])
                 return koeff1*self.makeBasisFunction(j,k-1)(u)+koeff2*self.makeBasisFunction(j+1,k-1)(u)
         return basisFunction
-
-knots = np.linspace(0,1,10)
-knots = np.hstack(([0,0],knots,[1,1]))
-grid = np.linspace(0,1,100)
-sp = spline(knots,0)
-
-for k in range(10):
-    spbasis=sp.makeBasisFunction(k,3)
-    values=np.zeros(len(grid))
-    for j in range(len(grid)):
-        print(j)
-        values[j]=spbasis(grid[j])
-    mp.plot(grid,values)
-
-                   
-                    
-
-
     def plot(self):
         
         x = self.s[0]
@@ -140,8 +124,8 @@ for k in range(10):
 def main():
     plt.close('all')
     control = np.load('controlPoints.npy')
-    knots = np.linspace(0,1,len(control[0])-2)
-    knots = np.hstack(([0,0],knots,[1, 1]))
+    knots = np.linspace(0.,1.,len(control[0])-2)
+    knots = np.hstack(([0],knots))
     u = np.linspace(0.,0.999,1000)
     Sp = spline(control,knots)
     Sp(u)

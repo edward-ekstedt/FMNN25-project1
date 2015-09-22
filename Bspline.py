@@ -13,8 +13,21 @@ import matplotlib.pyplot as plt
 class spline(object):
     
     def __init__(self,control,knots=None):
+        if not isinstance(control,np.ndarray):
+            raise TypeError('Control points must be a numpy array')
+        if control.dtype != 'float64':
+            raise TypeError('Control point array must concist of floats')
+        if len(control) != 2:
+            raise ValueError('Control point array must have dimension 2.')
+        if len(control[0]) <= 3:
+            raise ValueError('At least 4 control points are needed')
         self.control = control
         if knots != None:
+            if not isinstance(knots,np.ndarray):
+                raise TypeError('knots must be a numpy array')
+            if knots.dtype != 'float64':
+                raise TypeError('knot array must concist of floats.')
+            knots.sort()
             if knots[0] != knots[1]:
                 knots = np.hstack(([knots[0],knots]))
             if knots[1] != knots[2]:
@@ -24,13 +37,22 @@ class spline(object):
             if knots[-2] != knots[-3]:
                 knots = np.hstack(([knots,knots[-1]]))
             if len(knots) != len(control[0]) +2:
-                raise NameError('Knot array is of wrong size')
+                raise ValueError('Knot array is of wrong size')
             self.knots = knots
+            print(knots)
         else:
             knots = np.linspace(0.,1.,len(control[0])-2)
             self.knots = np.hstack(([0,0],knots,[1,1]))
+            print(self.knots)
         
     def __call__(self,u):
+        if not isinstance(u,np.ndarray):
+            raise TypeError('u must be a numpy array')
+        if u.dtype != 'float64':
+            raise TypeError('u array must concist of floats.')
+        u.sort()
+        if u[np.argmax(u)] >= self.knots[-1] or u[np.argmin(u)] < self.knots[0]:
+            raise ValueError('u out of bounds')
         self.s = self.computeS(u)
 
 
@@ -109,14 +131,15 @@ class spline(object):
                     koeff2=(self.knots[j+k]-u)/(self.knots[j+k]-self.knots[j])
                 return koeff1*self.makeBasisFunction(j,k-1)(u)+koeff2*self.makeBasisFunction(j+1,k-1)(u)
         return basisFunction
-    def plot(self):
+    def plot(self,plotControl = False):
         
         x = self.s[0]
         y = self.s[1]
         plt.figure(2)
         plt.plot(x,y,'b')
-        plt.plot(self.control[0],self.control[1],'ro')
-        plt.plot(self.control[0],self.control[1],'r--')
+        if plotControl:
+            plt.plot(self.control[0],self.control[1],'ro')
+            plt.plot(self.control[0],self.control[1],'r--')
         plt.show()
         
 
@@ -125,11 +148,11 @@ def main():
     plt.close('all')
     control = np.load('controlPoints.npy')
     knots = np.linspace(0.,1.,len(control[0])-2)
-    knots = np.hstack(([0],knots))
-    u = np.linspace(0.,0.999,1000)
-    Sp = spline(control,knots)
+    knots = np.hstack(([0, 1],knots))
+    u = np.linspace(0.,0.99,1000)
+    Sp = spline(control)
     Sp(u)
-    Sp.plot()
+    Sp.plot(1)
 main()
 
 #knots = np.linspace(0,1,12)

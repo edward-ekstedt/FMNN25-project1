@@ -31,8 +31,20 @@ class spline(object):
             self.knots = np.hstack(([0,0],knots,[1,1]))
         
     def __call__(self,u):
+        self.u = u        
         self.s = self.computeS(u)
+        
 
+    @classmethod
+    def interpolate(cls, x, y):
+        if len(x) != len(y):
+            raise NameError('X and Y array of different lengths')
+        knots = np.linspace(0.,1.,len(x)-2)
+        knots = np.hstack(([0,0],knots,[1,1]))
+        cls.knots = knots
+        return cls(cls.findD(cls, x, y, knots))
+        
+        
 
     def computeS(self,u):
         sX = np.zeros(len(u))
@@ -58,16 +70,20 @@ class spline(object):
         #Finds the interval in which u is.
         return (self.knots > u).argmax()
         
-    def findD(self,u):
+    def findD(self, x, y, knots):
         k=3
-        u = self.u
+        u = knots
         xi = (u[:-2]+u[1:-1]+u[2:])/3.
+        
         NMatrix = np.zeros((len(xi),len(xi)))
         for i in range(len(xi)):
             for j in range(len(xi)):
-                NMatrix[[i],[j]]=self.computeNXi(u,k,i,xi[j])
+                NMatrix[i,j]=self.makeBasisFunction(self, j,k)(xi[i])
+                #NMatrix[[i],[j]]=self.computeNXi(u,k,i,xi[j])
+        print(NMatrix)
         dx = sp.linalg.solve(NMatrix,x)
         dy = sp.linalg.solve(NMatrix,y)
+        return np.vstack([dx,dy])
         
     def computeNXi(self, u, k, i, xi):
         if k==0:
@@ -91,6 +107,9 @@ class spline(object):
     
     def makeBasisFunction(self, j, k):
         def basisFunction(u):
+            
+            print(j)
+            print(k)
             if k==0:
                 if self.knots[j-1]==self.knots[j]:
                     return 0
@@ -107,7 +126,7 @@ class spline(object):
                     koeff2=0
                 else:
                     koeff2=(self.knots[j+k]-u)/(self.knots[j+k]-self.knots[j])
-                return koeff1*self.makeBasisFunction(j,k-1)(u)+koeff2*self.makeBasisFunction(j+1,k-1)(u)
+                return koeff1*self.makeBasisFunction(self, j,k-1)(u)+koeff2*self.makeBasisFunction(self, j+1,k-1)(u)
         return basisFunction
     def plot(self):
         
@@ -121,16 +140,23 @@ class spline(object):
         
 
     
-def main():
-    plt.close('all')
-    control = np.load('controlPoints.npy')
-    knots = np.linspace(0.,1.,len(control[0])-2)
-    knots = np.hstack(([0],knots))
-    u = np.linspace(0.,0.999,1000)
-    Sp = spline(control,knots)
-    Sp(u)
-    Sp.plot()
-main()
+#def main():
+#    plt.close('all')
+#control = np.load('controlPoints.npy')
+#    knots = np.linspace(0.,1.,len(control[0])-2)
+#    knots = np.hstack(([0],knots))
+#    u = np.linspace(0.,0.999,1000)
+#    Sp = spline(control,knots)
+#    Sp(u)
+#    Sp.plot()
+#main()
+
+u = np.linspace(0.,0.999,1000)
+Sp = spline.interpolate(control[0],control[1])
+Sp(u)
+Sp.plot()
+
+
 
 #knots = np.linspace(0,1,12)
 #u = np.linspace(0,1,100)

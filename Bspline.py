@@ -46,9 +46,7 @@ class spline(object):
             print(self.knots)
         
     def __call__(self,u):
-<<<<<<< HEAD
         self.u = u        
-=======
         if not isinstance(u,np.ndarray):
             raise TypeError('u must be a numpy array')
         if u.dtype != 'float64':
@@ -56,7 +54,6 @@ class spline(object):
         u.sort()
         if u[np.argmax(u)] >= self.knots[-1] or u[np.argmin(u)] < self.knots[0]:
             raise ValueError('u out of bounds')
->>>>>>> origin/master
         self.s = self.computeS(u)
         
 
@@ -99,46 +96,21 @@ class spline(object):
         k=3
         u = knots
         xi = (u[:-2]+u[1:-1]+u[2:])/3.
-        
+        print(self.knots)
         NMatrix = np.zeros((len(xi),len(xi)))
         for i in range(len(xi)):
             for j in range(len(xi)):
-                NMatrix[i,j]=self.makeBasisFunction(self, j,k)(xi[i])
+                NMatrix[i,j]=self.makeBasisFunction(self,j,3)(xi[i])
                 #NMatrix[[i],[j]]=self.computeNXi(u,k,i,xi[j])
         print(NMatrix)
         dx = sp.linalg.solve(NMatrix,x)
         dy = sp.linalg.solve(NMatrix,y)
         return np.vstack([dx,dy])
         
-    def computeNXi(self, u, k, i, xi):
-        if k==0:
-            if u[i-1] == u[i]:
-                return 0
-            elif u[i]>xi>=u[i-1]:
-                return 1
-            else:
-                return 0
-        else:
-            if u[i-1]==u[i+k-1]:
-                coef1=0
-            else:
-                coef1=(xi-u[i-1])/(u[i+k-1]-u[i-1])
-            if u[i+k]==u[i]:
-                coef2=0
-            else:
-                coef2=(u[i+k]-xi)/(u[i+k]-u[i])
-        NXi = coef1*self.computeNXi(u, k-1, i, xi)+coef2*self.computeNXi(u, k-1, i+1, xi)
-        return NXi
-    
     def makeBasisFunction(self, j, k):
         def basisFunction(u):
-            
-            print(j)
-            print(k)
             if k==0:
-                if self.knots[j-1]==self.knots[j]:
-                    return 0
-                elif self.knots[j-1]<=u<self.knots[j]:
+                if self.knots[j-1]<=u<self.knots[j]:
                     return 1
                 else:
                     return 0
@@ -166,7 +138,7 @@ class spline(object):
         
 
     
-<<<<<<< HEAD
+
 #def main():
 #    plt.close('all')
 #control = np.load('controlPoints.npy')
@@ -177,14 +149,14 @@ class spline(object):
 #    Sp(u)
 #    Sp.plot()
 #main()
+def testjomp():
+    control = np.load('controlPoints.npy')
+    u = np.linspace(0.,0.999,1000)
+    Sp = spline.interpolate(control[0],control[1])
+    Sp(u)
+    Sp.plot()
 
-u = np.linspace(0.,0.999,1000)
-Sp = spline.interpolate(control[0],control[1])
-Sp(u)
-Sp.plot()
-
-
-=======
+testjomp()
 def main():
     plt.close('all')
     control = np.load('controlPoints.npy')
@@ -194,8 +166,6 @@ def main():
     Sp = spline(control)
     Sp(u)
     Sp.plot(1)
-main()
->>>>>>> origin/master
 
 #knots = np.linspace(0,1,12)
 #u = np.linspace(0,1,100)

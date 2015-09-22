@@ -149,7 +149,7 @@ def main():
     control = np.load('controlPoints.npy')
     knots = np.linspace(0.,1.,len(control[0])-2)
     knots = np.hstack(([0, 1],knots))
-    u = np.linspace(0.,0.99,1000)
+    u = np.linspace(0.,0.999,1000)
     Sp = spline(control)
     Sp(u)
     Sp.plot(1)
